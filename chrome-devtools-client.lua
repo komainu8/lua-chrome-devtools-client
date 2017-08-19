@@ -51,7 +51,7 @@ end
 
 -- Devtools Class
 Devtools = {}
-function Devtools.translate_html_to_xml(self)
+function Devtools.convert_html_to_xml(self)
   local response =
     Devtools:send_command(self.connection,
                           "{"..

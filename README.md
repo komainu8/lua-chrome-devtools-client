@@ -20,7 +20,7 @@ API List:
 - `connect`
 - `close`
 - `page_navigate`
-- `translate_html_to_xml`
+- `convert_html_to_xml`
 
 ### `connect`
 
@@ -46,12 +46,12 @@ connection:page_navigate("file:///tmp/test.html")
 chrome_devtools.close(connection)
 ```
 
-### `translate_html_to_xml`
+### `convert_html_to_xml`
 
 #### Examples
 ```lua
 local connection = chrome_devtools.connect_to_chrome()
-xml = connection:translate_html_to_xml()
+xml = connection:convert_html_to_xml()
 print(xml)
 chrome_devtools.close(connection)
 ```

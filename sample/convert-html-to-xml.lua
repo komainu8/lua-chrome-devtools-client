@@ -1,6 +1,9 @@
 #!/usr/bin/env lua
 
+package.path=package.path..';./?.lua'
+require("chrome-devtools-client")
 pgmoon = require("pgmoon-mashape")
+
 
 function split_text(text, delimiter)
   if text.find(text, delimiter) == nil then
@@ -28,7 +31,7 @@ function parse_connection_spec(connection_spec)
   return parsed_connection_spec
 end
 
-function convert_html(connection_spec, html_path)
+function store_xml(connection_spec, xml)
   parsed_connection_spec = parse_connection_spec(connection_spec)
   local pg = pgmoon.new(parsed_connection_spec)
   assert(pg:connect())
@@ -37,9 +40,12 @@ function convert_html(connection_spec, html_path)
                   "id serial,"..
                   "xml text"..
                   ");"))
-  -- just for check
-  xml = io.open('after-chrome.xml')
-  assert(pg:query("INSERT INTO contents (xml) VALUES (XMLPARSE(DOCUMENT " .. pg:escape_literal(xml:read('*all')) .. "))"))
+  assert(pg:query("INSERT INTO contents (xml)"..
+                  "VALUES ("..
+		           "XMLPARSE("..
+			             "DOCUMENT " ..pg:escape_literal(xml)..
+				   ")"..
+		          ")"))
 end
 
 if #arg ~= 2 then
@@ -48,4 +54,23 @@ if #arg ~= 2 then
   return 1
 end
 
-convert_html(arg[1], arg[2])
+
+--File copy
+before_html = io.open(arg[2], "r")
+in_html = io.open("/tmp/in.html", "w")
+in_html.write(before_html:read('*all')
+in_html.close()
+before_html.close()
+
+os.execute("scp -P 2022 \/tmp\/in.html \/tmp\/before.html")
+
+
+local devtools = chrome_devtools.connect("localhost")
+
+devtools:page_navigate("file:///tmp/before.html")
+chrome_devtools.close(devtools)
+
+devtools = chrome_devtools.connect("localhost")
+xml = devtools:convert_html_to_xml()
+store_xml(arg[1], xml)
+chrome_devtools.close(devtools)
